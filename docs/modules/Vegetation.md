@@ -17,14 +17,14 @@
 
 植被模块采用 **模块化设计**，通过 **高内聚、低耦合** 的方式组织代码，确保系统的 **可扩展性** 和 **可维护性**。模块主要由以下组件构成：
 
-- **ABaseVegetationActor**：植被的基础 Actor 类，负责管理植被的初始化和参数配置。
-- **USpringBasedVegetationComponent**：核心组件，处理植被的骨骼结构、弹簧动力学模拟和碰撞响应。
-- **AVegetationManager**：管理器类，负责植被实例的动态生成、池化管理和瓦片更新。
+- **BaseVegetationActor**：植被的基础 Actor 类，负责管理植被的初始化和参数配置。
+- **SpringBasedVegetationComponent**：核心组件，处理植被的骨骼结构、弹簧动力学模拟和碰撞响应。
+- **VegetationManager**：管理器类，负责植被实例的动态生成、池化管理和瓦片更新。
 
 这些组件通过 **分层设计** 解耦功能：
-- **ABaseVegetationActor** 提供参数管理和骨骼更新的接口。
-- **USpringBasedVegetationComponent** 实现弹簧动力学和物理计算，独立处理植被的动态行为。
-- **AVegetationManager** 协调植被的加载、渲染和销毁，优化大规模场景的性能。
+- **BaseVegetationActor** 提供参数管理和骨骼更新的接口。
+- **SpringBasedVegetationComponent** 实现弹簧动力学和物理计算，独立处理植被的动态行为。
+- **VegetationManager** 协调植被的加载、渲染和销毁，优化大规模场景的性能。
 
 这种设计使得植被模块能够 **灵活适配不同类型的植被**（如树木、灌木、草地等），并支持 **动态调整物理参数** 和 **场景优化**。
 
@@ -36,9 +36,9 @@
 
 ```mermaid
 flowchart TD
-    VegetationManager["AVegetationManager - 管理瓦片 - 池化植被实例 - 更新材质"]
-    BaseVegetationActor["ABaseVegetationActor - 参数管理 - 骨骼更新"]
-    SpringComponent["USpringBasedVegetationComponent - 弹簧动力学 - 碰撞响应 - 骨骼模拟"]
+    VegetationManager["VegetationManager - 管理瓦片 - 池化植被实例 - 更新材质"]
+    BaseVegetationActor["BaseVegetationActor - 参数管理 - 骨骼更新"]
+    SpringComponent["SpringBasedVegetationComponent - 弹簧动力学 - 碰撞响应 - 骨骼模拟"]
     SkeletalMesh["USkeletalMeshComponent - 渲染骨骼网格"]
     HeroVehicle["HeroVehicle - 触发植被交互"]
 
@@ -49,11 +49,11 @@ flowchart TD
     VegetationManager -->|检测| HeroVehicle
 ```
 
-该架构图展示了 **AVegetationManager**、**ABaseVegetationActor**、**USpringBasedVegetationComponent**、**USkeletalMeshComponent** 和 **HeroVehicle** 之间的交互关系。管理器动态加载植被实例，基础 Actor 配置参数，弹簧组件处理物理模拟，骨骼网格负责渲染，车辆触发交互。
+该架构图展示了 **VegetationManager**、**BaseVegetationActor**、**SpringBasedVegetationComponent**、**SkeletalMeshComponent** 和 **HeroVehicle** 之间的交互关系。管理器动态加载植被实例，基础 Actor 配置参数，弹簧组件处理物理模拟，骨骼网格负责渲染，车辆触发交互。
 
 ## [核心组件](#核心组件)
 
-### [ABaseVegetationActor](#abasevegetationactor)
+### [BaseVegetationActor](#basevegetationactor)
 - **功能**：植被的基础 Actor，负责初始化、参数管理和骨骼更新。
 - **关键方法**：
   - `BeginPlay()`：初始化植被 Actor，调用父类逻辑并记录性能。
@@ -62,7 +62,7 @@ flowchart TD
   - `UpdateSkeletonAndParameters()`：更新骨骼层次和参数。
 - **实现**：通过 `USpringBasedVegetationComponent` 获取和设置物理参数，支持动态调整。使用 `UE_LOG` 记录操作状态，方便调试。
 
-### [USpringBasedVegetationComponent](#uspringbasedvegetationcomponent)
+### [SpringBasedVegetationComponent](#springbasedvegetationcomponent)
 - **功能**：核心物理模拟组件，基于弹簧动力学模拟植被形变和碰撞。
 - **关键方法**：
   - `GenerateSkeletonHierarchy()`：生成骨骼层次结构，定义关节和骨骼关系。
@@ -72,7 +72,7 @@ flowchart TD
   - `AddForce()`：蓝图可调用，施加外力到指定骨骼。
 - **实现**：使用 Eigen 库进行矩阵运算，结合 Unreal Engine 的骨骼网格实现动态形变。支持碰撞胶囊（`BoneCapsules`）和调试可视化。
 
-### [AVegetationManager](#avegetationmanager)
+### [VegetationManager](#vegetationmanager)
 - **功能**：管理植被的动态生成、池化和瓦片更新。
 - **关键方法**：
   - `SpawnSkeletalFoliages()`：根据瓦片数据生成植被实例。
@@ -87,7 +87,7 @@ flowchart TD
 植被模块采用 **事件驱动模型**，通过 Unreal Engine 的事件系统处理植被的交互和更新：
 
 1. **碰撞事件**：
-   - `USpringBasedVegetationComponent::OnCollisionEvent` 响应车辆等物体与植被的碰撞，基于 `FHitResult` 计算外力并更新骨骼状态。
+   - `SpringBasedVegetationComponent::OnCollisionEvent` 响应车辆等物体与植被的碰撞，基于 `FHitResult` 计算外力并更新骨骼状态。
    - 示例：当车辆撞击树木时，触发形变并应用力。
 
 2. **重叠事件**：
@@ -95,17 +95,17 @@ flowchart TD
    - 示例：车辆靠近灌木时，触发物理计算。
 
 3. **世界事件**：
-   - `AVegetationManager::OnLevelAddedToWorld` 和 `OnLevelRemovedFromWorld` 响应瓦片加载/卸载，更新 `TileCache` 和 `FoliageBlueprintCache`。
+   - `VegetationManager::OnLevelAddedToWorld` 和 `OnLevelRemovedFromWorld` 响应瓦片加载/卸载，更新 `TileCache` 和 `FoliageBlueprintCache`。
    - 示例：新地图瓦片加载时，初始化植被数据。
 
 4. **每帧更新**：
-   - `USpringBasedVegetationComponent::TickComponent` 更新骨骼变换和物理状态。
-   - `AVegetationManager::Tick` 检查车辆位置，更新瓦片和植被实例。
+   - `SpringBasedVegetationComponent::TickComponent` 更新骨骼变换和物理状态。
+   - `VegetationManager::Tick` 检查车辆位置，更新瓦片和植被实例。
 
 ## [物理模拟](#物理模拟)
 
-`USpringBasedVegetationComponent` 实现基于弹簧动力学的物理模拟：
-- **骨骼层次**：通过 `FSkeletonHierarchy` 管理关节（`FSkeletonJoint`）和骨骼（`FSkeletonBone`），支持多层分支结构。
+`SpringBasedVegetationComponent` 实现基于弹簧动力学的物理模拟：
+- **骨骼层次**：通过 `SkeletonHierarchy` 管理关节（`SkeletonJoint`）和骨骼（`SkeletonBone`），支持多层分支结构。
 - **弹簧模型**：使用 `SpringStrength`、`Beta`（阻尼系数）、`Alpha`（刚度）等参数模拟形变。
 - **碰撞响应**：通过 `CapsuleRadius` 和 `LineTraceMaxDistance` 定义碰撞胶囊，检测与车辆等的交互，应用外力（`ExternalForces`）。
 - **优化**：使用 Eigen 库进行高效矩阵运算（如惯性张量 `InertiaTensor` 和变换矩阵 `JointToGlobalMatrix`），支持复杂动力学计算。
@@ -116,8 +116,8 @@ flowchart TD
 
 ## [缓存管理](#缓存管理)
 
-- **对象池**：`AVegetationManager::ActorPool` 缓存植被实例（`FPooledActor`），通过 `EnableActor` 和 `DisableActor` 复用 Actor，减少创建/销毁开销。
-- **瓦片缓存**：`TileCache` 存储瓦片数据（`FTileData`），包括 `InstancedFoliageActor` 和 `ProceduralFoliageVolume`，动态加载靠近车辆的植被。
+- **对象池**：`VegetationManager::ActorPool` 缓存植被实例（`PooledActor`），通过 `EnableActor` 和 `DisableActor` 复用 Actor，减少创建/销毁开销。
+- **瓦片缓存**：`TileCache` 存储瓦片数据（`TileData`），包括 `InstancedFoliageActor` 和 `ProceduralFoliageVolume`，动态加载靠近车辆的植被。
 - **材质缓存**：`MaterialInstanceDynamicCache` 缓存动态材质，优化渲染性能，通过 `UpdateMaterialCache` 更新材质参数（如透明度、调试状态）。
 - **关键实现**：
   - `CreateOrUpdateTileCache`：初始化或更新瓦片数据。
@@ -151,7 +151,7 @@ sudo apt-get install libeigen3-dev
 ### [配置项](#配置项)
 
 #### [弹簧参数](#弹簧参数)
-在 `USpringBasedVegetationComponent` 中配置：
+在 `SpringBasedVegetationComponent` 中配置：
 ```cpp
 SpringComponent->Beta = 0.5f; // 阻尼系数
 SpringComponent->BaseSpringStrength = 10000.f; // 基础弹簧强度
@@ -162,7 +162,7 @@ SpringComponent->LineTraceMaxDistance = 180.f; // 碰撞检测距离
 ```
 
 #### [植被管理](#植被管理)
-在 `AVegetationManager` 中配置：
+在 `VegetationManager` 中配置：
 ```cpp
 VegetationManager->SpawnScale = 1.0f; // 植被缩放比例
 VegetationManager->ActiveActorDistance = 500.f; // 激活植被的距离
@@ -182,7 +182,7 @@ SpringComponent->DebugEnableAllCollisions = true; // 启用所有碰撞检测
 ```cpp
 #include "Carla/Vegetation/SpringBasedVegetationComponent.h"
 
-void ConfigureSpringComponent(USpringBasedVegetationComponent* SpringComponent) {
+void ConfigureSpringComponent(SpringBasedVegetationComponent* SpringComponent) {
     SpringComponent->Beta = 0.7f;
     SpringComponent->BaseSpringStrength =  prioritize readability and clarity.
 
@@ -198,7 +198,7 @@ void ConfigureSpringComponent(USpringBasedVegetationComponent* SpringComponent) 
 ```cpp
 #include "Carla/Vegetation/VegetationManager.h"
 
-void ConfigureVegetationManager(AVegetationManager* Manager) {
+void ConfigureVegetationManager(VegetationManager* Manager) {
     Manager->SpawnScale = 1.2f;
     Manager->ActiveActorDistance = 600.f;
     Manager->InitialPoolSize = 100;
@@ -220,7 +220,7 @@ void ConfigureVegetationManager(AVegetationManager* Manager) {
 
 植被模块主要处理以下数据：
 - **输入**：车辆位置（`HeroVehicle`）、瓦片数据（`TileCache`）、蓝图配置（`FoliageBlueprint`）。
-- **输出**：动态植被实例（`ABaseVegetationActor`）、骨骼变换（`USkeletalMeshComponent`）、碰撞响应。
+- **输出**：动态植被实例（`BaseVegetationActor`）、骨骼变换（`SkeletalMeshComponent`）、碰撞响应。
 
 | **主题**           | **描述**                                                 |
 |-------------------|--------------------------------------------------------|
@@ -232,22 +232,22 @@ void ConfigureVegetationManager(AVegetationManager* Manager) {
 ```cpp
 #include "Carla/Vegetation/BaseVegetationActor.h"
 
-void CreateVegetation(ABaseVegetationActor* VegetationActor) {
+void CreateVegetation(BaseVegetationActor* VegetationActor) {
     VegetationActor->UpdateSkeletonAndParameters();
-    USpringBasedVegetationComponent* SpringComponent = VegetationActor->FindComponentByClass<USpringBasedVegetationComponent>();
+    SpringBasedVegetationComponent* SpringComponent = VegetationActor->FindComponentByClass<SpringBasedVegetationComponent>();
     SpringComponent->AddForce("joint1", FVector(100, 0, 0));
 }
 ```
 
 ## [创建植被实例](#创建植被实例)
 
-植被实例由 `ABaseVegetationActor` 和 `USpringBasedVegetationComponent` 组成。
+植被实例由 `BaseVegetationActor` 和 `SpringBasedVegetationComponent` 组成。
 
 ### 服务器端（VegetationManager）
 ```cpp
 #include "Carla/Vegetation/VegetationManager.h"
 
-void SetupVegetationManager(AVegetationManager* Manager, ACarlaWheeledVehicle* Vehicle) {
+void SetupVegetationManager(VegetationManager* Manager, CarlaWheeledVehicle* Vehicle) {
     Manager->AddVehicle(Vehicle);
     Manager->CreatePoolForBPClass(FoliageBlueprint);
 }
@@ -257,7 +257,7 @@ void SetupVegetationManager(AVegetationManager* Manager, ACarlaWheeledVehicle* V
 ```cpp
 #include "Carla/Vegetation/BaseVegetationActor.h"
 
-void SetupVegetationActor(ABaseVegetationActor* VegetationActor) {
+void SetupVegetationActor(BaseVegetationActor* VegetationActor) {
     VegetationActor->UpdateSkeletonAndParameters();
 }
 ```
@@ -313,13 +313,13 @@ SpringComponent->ForceMaxDistance = 200.f;
 ## [植被管理器与植被实例](#植被管理器与植被实例)
 
 ### 概述
-植被模块采用 **管理器-实例** 架构，`AVegetationManager` 负责全局管理和优化，`ABaseVegetationActor` 处理单个植被的物理模拟。
+植被模块采用 **管理器-实例** 架构，`VegetationManager` 负责全局管理和优化，`BaseVegetationActor` 处理单个植被的物理模拟。
 
 ### 管理器（AVegetationManager）
 - **功能**：动态加载瓦片、池化植被、更新材质。
 - **代码解析**：
   ```cpp
-  void AVegetationManager::Tick(float DeltaTime) {
+  void VegetationManager::Tick(float DeltaTime) {
       Super::Tick(DeltaTime);
       if (!LargeMap) return;
       HeroVehicle = LargeMap->GetHeroVehicle();
@@ -335,12 +335,12 @@ SpringComponent->ForceMaxDistance = 200.f;
   }
   ```
 
-### 实例（ABaseVegetationActor）
+### 实例（BaseVegetationActor）
 - **功能**：管理单个植被的参数和骨骼。
 - **代码解析**：
   ```cpp
-  void ABaseVegetationActor::UpdateSkeletonAndParameters() {
-      USpringBasedVegetationComponent* SpringComponent = Cast<USpringBasedVegetationComponent>(
+  void BaseVegetationActor::UpdateSkeletonAndParameters() {
+      SpringBasedVegetationComponent* SpringComponent = Cast<USpringBasedVegetationComponent>(
           GetComponentByClass(USpringBasedVegetationComponent::StaticClass()));
       if (!SpringComponent) {
           UE_LOG(LogCarla, Error, TEXT("Component not found"));
@@ -358,10 +358,10 @@ SpringComponent->ForceMaxDistance = 200.f;
 - **概述**：支持多个植被实例同时运行，通过对象池（`ActorPool`）管理并发。
 - **代码解析**：
   ```cpp
-  void AVegetationManager::SpawnSkeletalFoliages(TArray<FElementsToSpawn>& ElementsToSpawn) {
-      for (FElementsToSpawn& Element : ElementsToSpawn) {
+  void VegetationManager::SpawnSkeletalFoliages(Array<ElementsToSpawn>& ElementsToSpawn) {
+      for (ElementsToSpawn& Element : ElementsToSpawn) {
           TArray<FPooledActor>* Pool = ActorPool.Find(Element.BP.BPFullClassName);
-          for (const TPair<FTransform, int32>& TransformIndex : Element.TransformIndex) {
+          for (const Pair<Transform, int32>& TransformIndex : Element.TransformIndex) {
               EnableActorFromPool(TransformIndex.Key, TransformIndex.Value, Element.TileMeshComponent, *Pool);
           }
       }
@@ -373,10 +373,10 @@ SpringComponent->ForceMaxDistance = 200.f;
 - **概述**：基于 `TileCache` 管理多个瓦片，动态加载靠近车辆的植被。
 - **代码解析**：
   ```cpp
-  void AVegetationManager::CreateOrUpdateTileCache(ULevel* InLevel) {
-      FTileData TileData {};
+  void VegetationManager::CreateOrUpdateTileCache(ULevel* InLevel) {
+      TileData TileData {};
       for (AActor* Actor : InLevel->Actors) {
-          AInstancedFoliageActor* InstancedFoliageActor = Cast<AInstancedFoliageActor>(Actor);
+          InstancedFoliageActor* InstancedFoliageActor = Cast<InstancedFoliageActor>(Actor);
           if (IsValid(InstancedFoliageActor)) {
               TileData.InstancedFoliageActor = InstancedFoliageActor;
               break;
@@ -384,8 +384,8 @@ SpringComponent->ForceMaxDistance = 200.f;
       }
       if (!IsValid(TileData.InstancedFoliageActor)) return;
 
-      for (AActor* Actor : InLevel->Actors) {
-          AProceduralFoliageVolume* ProceduralFoliageVolume = Cast<AProceduralFoliageVolume>(Actor);
+      for (Actor* Actor : InLevel->Actors) {
+          ProceduralFoliageVolume* ProceduralFoliageVolume = Cast<ProceduralFoliageVolume>(Actor);
           if (IsValid(ProceduralFoliageVolume)) {
               TileData.ProceduralFoliageVolume = ProceduralFoliageVolume;
               break;
@@ -393,8 +393,8 @@ SpringComponent->ForceMaxDistance = 200.f;
       }
       if (!IsValid(TileData.ProceduralFoliageVolume)) return;
 
-      const FString TileName = TileData.InstancedFoliageActor->GetLevel()->GetOuter()->GetName();
-      FTileData* ExistingTileData = TileCache.Find(TileName);
+      const String TileName = TileData.InstancedFoliageActor->GetLevel()->GetOuter()->GetName();
+      TileData* ExistingTileData = TileCache.Find(TileName);
       if (ExistingTileData) {
           ExistingTileData->InstancedFoliageActor = TileData.InstancedFoliageActor;
           ExistingTileData->ProceduralFoliageVolume = TileData.ProceduralFoliageVolume;
