@@ -39,7 +39,7 @@ flowchart TD
     VegetationManager["VegetationManager - 管理瓦片 - 池化植被实例 - 更新材质"]
     BaseVegetationActor["BaseVegetationActor - 参数管理 - 骨骼更新"]
     SpringComponent["SpringBasedVegetationComponent - 弹簧动力学 - 碰撞响应 - 骨骼模拟"]
-    SkeletalMesh["USkeletalMeshComponent - 渲染骨骼网格"]
+    SkeletalMesh["SkeletalMeshComponent - 渲染骨骼网格"]
     HeroVehicle["HeroVehicle - 触发植被交互"]
 
     VegetationManager -->|管理| BaseVegetationActor
